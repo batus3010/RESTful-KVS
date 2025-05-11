@@ -24,6 +24,11 @@ func (store *StubStore) Put(key string, value string) error {
 	return nil
 }
 
+func (store *StubStore) Delete(key string) error {
+	delete(store.kv, key)
+	return nil
+}
+
 func TestGet(t *testing.T) {
 	t.Run("Get returns 404 on missing key", func(t *testing.T) {
 		server, response := newTestServer(map[string]string{})
@@ -68,6 +73,16 @@ func TestDelete(t *testing.T) {
 		request := httptest.NewRequest(http.MethodDelete, "/kv/foo", nil)
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusNotFound)
+	})
+	t.Run("Delete existing key", func(t *testing.T) {
+		server, response := newTestServer(map[string]string{"foo": "bar"})
+		request := httptest.NewRequest(http.MethodDelete, "/kv/foo", nil)
+		server.ServeHTTP(response, request)
+		assertStatus(t, response.Code, http.StatusOK)
+		getRequest := httptest.NewRequest(http.MethodGet, "/kv/foo", nil)
+		getResponse := httptest.NewRecorder()
+		server.ServeHTTP(getResponse, getRequest)
+		assertStatus(t, getResponse.Code, http.StatusNotFound)
 	})
 }
 

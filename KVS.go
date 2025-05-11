@@ -9,6 +9,7 @@ const (
 type KeyValueStore interface {
 	Put(key, value string) error
 	Get(key string) (string, error)
+	Delete(key string) error
 }
 
 type InMemoryKVS struct {
@@ -31,4 +32,9 @@ func (kvs *InMemoryKVS) Get(key string) (string, error) {
 		return val, nil
 	}
 	return "", errors.New(ErrMsgKeyNotFound)
+}
+
+func (kvs *InMemoryKVS) Delete(key string) error {
+	delete(kvs.Store, key)
+	return nil
 }

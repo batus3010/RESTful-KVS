@@ -66,4 +66,9 @@ func (p *Server) handleDelete(w http.ResponseWriter, key string) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
+	err = p.store.Delete(key)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	w.WriteHeader(http.StatusOK)
 }
