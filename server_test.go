@@ -1,6 +1,7 @@
 package kvs
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -12,8 +13,10 @@ type StubStore struct {
 }
 
 func (store *StubStore) Get(key string) (string, error) {
-	value := store.kv[key]
-	return value, nil
+	if val, ok := store.kv[key]; ok {
+		return val, nil
+	}
+	return "", errors.New("value not found")
 }
 
 func (store *StubStore) Put(key string, value string) error {
