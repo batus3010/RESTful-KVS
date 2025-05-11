@@ -1,6 +1,7 @@
 package kvs
 
 import (
+	"io"
 	"net/http"
 	"strings"
 )
@@ -25,6 +26,14 @@ func (p *Server) storeHandler(w http.ResponseWriter, req *http.Request) {
 	case http.MethodGet:
 		p.showValue(w, key)
 	case http.MethodPost:
+		body, err := io.ReadAll(req.Body)
+		if err != nil {
+			http.Error(w, "Error reading request body", http.StatusBadRequest)
+			return
+		}
+		defer req.Body.Close()
+		value := string(body)
+		p.store.Put(key, value)
 		w.WriteHeader(http.StatusAccepted)
 	}
 }

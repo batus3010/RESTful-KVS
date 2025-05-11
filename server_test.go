@@ -52,26 +52,35 @@ func TestGet(t *testing.T) {
 
 func TestPut(t *testing.T) {
 	t.Run("Put returns 201", func(t *testing.T) {
-		store := &StubStore{}
+		store := &StubStore{
+			kv: map[string]string{},
+		}
 		server := NewServer(store)
 		request := httptest.NewRequest(http.MethodPost, "/kv/foo", strings.NewReader("bar"))
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusAccepted)
 	})
-	//t.Run("Put new value then Get return that value", func(t *testing.T) {
-	//	store := &StubStore{}
-	//	server := NewServer(store)
-	//	request := httptest.NewRequest(http.MethodPost, "/kv/foo", strings.NewReader("bar"))
-	//	response := httptest.NewRecorder()
-	//	server.ServeHTTP(response, request)
-	//	assertStatus(t, response.Code, http.StatusAccepted)
-	//
-	//	getRequest := httptest.NewRequest(http.MethodGet, "/kv/foo", nil)
-	//	getResponse := httptest.NewRecorder()
-	//	server.ServeHTTP(getResponse, getRequest)
-	//	assertStatus(t, getResponse.Code, http.StatusOK)
-	//})
+	t.Run("Put new value then Get return that value", func(t *testing.T) {
+		store := &StubStore{
+			kv: map[string]string{},
+		}
+		server := NewServer(store)
+		request := httptest.NewRequest(http.MethodPost, "/kv/foo", strings.NewReader("bar"))
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
+		assertStatus(t, response.Code, http.StatusAccepted)
+
+		getRequest := httptest.NewRequest(http.MethodGet, "/kv/foo", nil)
+		getResponse := httptest.NewRecorder()
+		server.ServeHTTP(getResponse, getRequest)
+		assertStatus(t, getResponse.Code, http.StatusOK)
+		//got := getResponse.Body.String()
+		//want := "bar"
+		//if got != want {
+		//	t.Errorf("got %q, want %q", got, want)
+		//}
+	})
 }
 
 func assertStatus(t testing.TB, got, want int) {
