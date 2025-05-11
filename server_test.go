@@ -2,6 +2,8 @@ package kvs
 
 import (
 	"errors"
+	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -31,13 +33,13 @@ func (store *StubStore) Delete(key string) error {
 
 func TestGet(t *testing.T) {
 	t.Run("Get returns 404 on missing key", func(t *testing.T) {
-		server, response := newTestServer(map[string]string{})
+		server, response := newTestServerWithStubStore(map[string]string{})
 		request := httptest.NewRequest(http.MethodGet, "/kv/foo", nil)
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusNotFound)
 	})
 	t.Run("Get on existing key return 200 and value", func(t *testing.T) {
-		server, response := newTestServer(map[string]string{"foo": "bar"})
+		server, response := newTestServerWithStubStore(map[string]string{"foo": "bar"})
 		request := httptest.NewRequest(http.MethodGet, "/kv/foo", nil)
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusOK)
@@ -47,13 +49,13 @@ func TestGet(t *testing.T) {
 
 func TestPut(t *testing.T) {
 	t.Run("Put returns 201", func(t *testing.T) {
-		server, response := newTestServer(map[string]string{})
+		server, response := newTestServerWithStubStore(map[string]string{})
 		request := httptest.NewRequest(http.MethodPost, "/kv/foo", strings.NewReader("bar"))
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusAccepted)
 	})
 	t.Run("Put new value then Get return that value", func(t *testing.T) {
-		server, response := newTestServer(map[string]string{})
+		server, response := newTestServerWithStubStore(map[string]string{})
 		request := httptest.NewRequest(http.MethodPost, "/kv/foo", strings.NewReader("bar"))
 		server.ServeHTTP(response, request)
 
@@ -69,13 +71,13 @@ func TestPut(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	t.Run("Delete non-existing key returns 404", func(t *testing.T) {
-		server, response := newTestServer(map[string]string{})
+		server, response := newTestServerWithStubStore(map[string]string{})
 		request := httptest.NewRequest(http.MethodDelete, "/kv/foo", nil)
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusNotFound)
 	})
 	t.Run("Delete existing key", func(t *testing.T) {
-		server, response := newTestServer(map[string]string{"foo": "bar"})
+		server, response := newTestServerWithStubStore(map[string]string{"foo": "bar"})
 		request := httptest.NewRequest(http.MethodDelete, "/kv/foo", nil)
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusOK)
@@ -88,16 +90,17 @@ func TestDelete(t *testing.T) {
 
 func TestRestKVS(t *testing.T) {
 	t.Run("Method not allowed should returns StatusMethodNotAllowed", func(t *testing.T) {
-		server, response := newTestServer(map[string]string{})
+		server, response := newTestServerWithStubStore(map[string]string{})
 		request := httptest.NewRequest(http.MethodPut, "/kv/foo", nil)
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusMethodNotAllowed)
 	})
 }
 
-func newTestServer(initial map[string]string) (*Server, *httptest.ResponseRecorder) {
+func newTestServerWithStubStore(initial map[string]string) (*Server, *httptest.ResponseRecorder) {
 	store := &StubStore{kv: initial}
-	srv := NewServer(store)
+	silentLog := log.New(io.Discard, "", 0)
+	srv := NewServer(store, silentLog)
 	response := httptest.NewRecorder()
 	return srv, response
 }

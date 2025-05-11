@@ -3,6 +3,7 @@ package kvs
 import (
 	"errors"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -55,9 +56,14 @@ func TestInMemoryKVSIntegration(t *testing.T) {
 	}
 }
 
+func newTestServer() *Server {
+	logger := log.New(io.Discard, "", 0)
+	return NewServer(NewInMemoryKVS(), logger)
+}
+
 func TestServerIntegration(t *testing.T) {
 	// Create server backed by a fresh in-memory Store
-	srv := NewServer(NewInMemoryKVS())
+	srv := newTestServer()
 
 	// 1) GET missing key → 404
 	{
