@@ -28,13 +28,7 @@ func (p *Server) storeHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		p.handlePost(w, r, key)
 	case http.MethodDelete:
-		value, err := p.findValueWith(key)
-		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-		w.Write([]byte(value))
-
+		p.handleDelete(w, key)
 	default:
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
@@ -66,10 +60,10 @@ func (p *Server) handlePost(w http.ResponseWriter, r *http.Request, key string) 
 	w.WriteHeader(http.StatusAccepted)
 }
 
-func (p *Server) findValueWith(key string) (string, error) {
-	value, err := p.store.Get(key)
+func (p *Server) handleDelete(w http.ResponseWriter, key string) {
+	_, err := p.store.Get(key)
 	if err != nil {
-		return "", err
+		w.WriteHeader(http.StatusNotFound)
+		return
 	}
-	return value, nil
 }
