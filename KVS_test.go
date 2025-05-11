@@ -10,7 +10,14 @@ func TestKVS(t *testing.T) {
 		assertEqual(t, got, want)
 		assertError(t, err)
 	})
-	t.Run("Put value and then Get returns value and nil", func(t *testing.T) {})
+	t.Run("Put value and then Get returns value and nil", func(t *testing.T) {
+		kvs := NewInMemoryKVS()
+		err := kvs.Put("foo", "bar")
+		assertNoError(t, err)
+		got, err := kvs.Get("foo")
+		want := "bar"
+		assertEqual(t, got, want)
+	})
 }
 
 func assertError(t *testing.T, err error) {
@@ -20,9 +27,16 @@ func assertError(t *testing.T, err error) {
 	}
 }
 
+func assertNoError(t *testing.T, err error) {
+	t.Helper()
+	if err != nil {
+		t.Fatalf("Expected no error but got %v instead", err)
+	}
+}
+
 func assertEqual[T comparable](t *testing.T, got, want T) {
 	t.Helper()
 	if got != want {
-		t.Errorf("got %v want %v", got, want)
+		t.Errorf("got '%v' want '%v'", got, want)
 	}
 }
