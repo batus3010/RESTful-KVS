@@ -59,10 +59,19 @@ func TestPut(t *testing.T) {
 	})
 }
 
+func TestDelete(t *testing.T) {
+	t.Run("Delete non-existing key returns 404", func(t *testing.T) {
+		server, response := newTestServer(map[string]string{})
+		request := httptest.NewRequest(http.MethodDelete, "/kv/foo", nil)
+		server.ServeHTTP(response, request)
+		assertStatus(t, response.Code, http.StatusNotFound)
+	})
+}
+
 func TestRestKVS(t *testing.T) {
 	t.Run("Method not allowed should returns StatusMethodNotAllowed", func(t *testing.T) {
 		server, response := newTestServer(map[string]string{})
-		request := httptest.NewRequest(http.MethodDelete, "/kv/foo", nil)
+		request := httptest.NewRequest(http.MethodPut, "/kv/foo", nil)
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusMethodNotAllowed)
 	})

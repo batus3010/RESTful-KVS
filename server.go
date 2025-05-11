@@ -27,6 +27,8 @@ func (p *Server) storeHandler(w http.ResponseWriter, r *http.Request) {
 		p.handleGet(w, key)
 	case http.MethodPost:
 		p.handlePost(w, r, key)
+	case http.MethodDelete:
+		http.NotFound(w, r)
 	default:
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
