@@ -1,4 +1,4 @@
-package Key_Value_Store
+package kvs
 
 import "testing"
 
