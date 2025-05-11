@@ -7,13 +7,13 @@ import (
 )
 
 type Server struct {
-	store KeyValueStore
+	Store KeyValueStore
 	http.Handler
 }
 
 func NewServer(store KeyValueStore) *Server {
 	p := new(Server)
-	p.store = store
+	p.Store = store
 	router := http.NewServeMux()
 	router.Handle("/kv/", http.HandlerFunc(p.storeHandler))
 	p.Handler = router
@@ -35,7 +35,7 @@ func (p *Server) storeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Server) handleGet(w http.ResponseWriter, key string) {
-	value, _ := p.store.Get(key)
+	value, _ := p.Store.Get(key)
 	if value == "" {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -51,7 +51,7 @@ func (p *Server) handlePost(w http.ResponseWriter, r *http.Request, key string) 
 		return
 	}
 	value := string(body)
-	if err := p.store.Put(key, value); err != nil {
+	if err := p.Store.Put(key, value); err != nil {
 		// if your Put ever returns an error, report it
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -61,12 +61,12 @@ func (p *Server) handlePost(w http.ResponseWriter, r *http.Request, key string) 
 }
 
 func (p *Server) handleDelete(w http.ResponseWriter, key string) {
-	_, err := p.store.Get(key)
+	_, err := p.Store.Get(key)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-	err = p.store.Delete(key)
+	err = p.Store.Delete(key)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

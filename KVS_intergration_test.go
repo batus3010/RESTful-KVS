@@ -56,7 +56,7 @@ func TestInMemoryKVSIntegration(t *testing.T) {
 }
 
 func TestServerIntegration(t *testing.T) {
-	// Create server backed by a fresh in-memory store
+	// Create server backed by a fresh in-memory Store
 	srv := NewServer(NewInMemoryKVS())
 
 	// 1) GET missing key → 404
