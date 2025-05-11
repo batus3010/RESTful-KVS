@@ -29,8 +29,17 @@ func TestGet(t *testing.T) {
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusNotFound)
 	})
-	t.Run("Get returns value on existing key", func(t *testing.T) {
-		
+	t.Run("Get returns 200 on existing keys", func(t *testing.T) {
+		store := &StubStore{
+			kv: map[string]string{
+				"foo": "bar",
+			},
+		}
+		server := NewServer(store)
+		request := httptest.NewRequest(http.MethodGet, "/kv/foo", nil)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
+		assertStatus(t, response.Code, http.StatusOK)
 	})
 }
 

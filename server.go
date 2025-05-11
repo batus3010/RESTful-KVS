@@ -2,6 +2,7 @@ package kvs
 
 import (
 	"net/http"
+	"strings"
 )
 
 type Server struct {
@@ -19,8 +20,14 @@ func NewServer(store KeyValueStore) *Server {
 }
 
 func (p *Server) storeHandler(w http.ResponseWriter, req *http.Request) {
+	key := strings.TrimPrefix(req.URL.Path, "/kv/")
 	switch req.Method {
 	case http.MethodGet:
-		http.NotFound(w, req)
+		value, _ := p.store.Get(key)
+		if value == "" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		w.Write([]byte(value))
 	}
 }
