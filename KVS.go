@@ -5,16 +5,18 @@ type KeyValueStore interface {
 	Get(key string) (string, error)
 }
 
-type KVS struct{}
-
-func NewKeyValueStore() KeyValueStore {
-	return &KVS{}
+type InMemoryKVS struct {
+	store KeyValueStore
 }
 
-func (kvs *KVS) Put(key, value string) error {
+func NewInMemoryKVS() KeyValueStore {
+	return &InMemoryKVS{}
+}
+
+func (kvs *InMemoryKVS) Put(key, value string) error {
 	return nil
 }
 
-func (kvs *KVS) Get(key string) (string, error) {
+func (kvs *InMemoryKVS) Get(key string) (string, error) {
 	return "", nil
 }

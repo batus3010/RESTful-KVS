@@ -4,7 +4,7 @@ import "testing"
 
 func TestKVS(t *testing.T) {
 	t.Run("GET non-exist key returns empty string and nil", func(t *testing.T) {
-		store := NewKeyValueStore()
+		store := NewInMemoryKVS()
 		got, _ := store.Get("foo")
 		want := ""
 		if got != want {
