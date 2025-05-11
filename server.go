@@ -20,21 +20,13 @@ func NewServer(store KeyValueStore) *Server {
 	return p
 }
 
-func (p *Server) storeHandler(w http.ResponseWriter, req *http.Request) {
-	key := strings.TrimPrefix(req.URL.Path, "/kv/")
-	switch req.Method {
+func (p *Server) storeHandler(w http.ResponseWriter, r *http.Request) {
+	key := strings.TrimPrefix(r.URL.Path, "/kv/")
+	switch r.Method {
 	case http.MethodGet:
 		p.showValue(w, key)
 	case http.MethodPost:
-		body, err := io.ReadAll(req.Body)
-		if err != nil {
-			http.Error(w, "Error reading request body", http.StatusBadRequest)
-			return
-		}
-		defer req.Body.Close()
-		value := string(body)
-		p.store.Put(key, value)
-		w.WriteHeader(http.StatusAccepted)
+		p.handlePost(w, r, key)
 	}
 }
 
@@ -45,4 +37,21 @@ func (p *Server) showValue(w http.ResponseWriter, key string) {
 		return
 	}
 	w.Write([]byte(value))
+}
+
+func (p *Server) handlePost(w http.ResponseWriter, r *http.Request, key string) {
+	body, err := io.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		http.Error(w, "Error reading request body", http.StatusBadRequest)
+		return
+	}
+	value := string(body)
+	if err := p.store.Put(key, value); err != nil {
+		// if your Put ever returns an error, report it
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
 }
