@@ -41,12 +41,7 @@ func TestGet(t *testing.T) {
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusOK)
-
-		got := response.Body.String()
-		want := "bar"
-		if got != want {
-			t.Errorf("got %q, want %q", got, want)
-		}
+		assertEqual(t, response.Body.String(), "bar")
 	})
 }
 
@@ -75,11 +70,7 @@ func TestPut(t *testing.T) {
 		getResponse := httptest.NewRecorder()
 		server.ServeHTTP(getResponse, getRequest)
 		assertStatus(t, getResponse.Code, http.StatusOK)
-		//got := getResponse.Body.String()
-		//want := "bar"
-		//if got != want {
-		//	t.Errorf("got %q, want %q", got, want)
-		//}
+		assertEqual(t, getResponse.Body.String(), "bar")
 	})
 }
 
