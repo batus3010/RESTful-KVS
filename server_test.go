@@ -30,7 +30,7 @@ func TestGet(t *testing.T) {
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusNotFound)
 	})
-	t.Run("Get returns 200 on existing keys", func(t *testing.T) {
+	t.Run("Get on existing key return 200 and value", func(t *testing.T) {
 		store := &StubStore{
 			kv: map[string]string{
 				"foo": "bar",
@@ -41,6 +41,12 @@ func TestGet(t *testing.T) {
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusOK)
+
+		got := response.Body.String()
+		want := "bar"
+		if got != want {
+			t.Errorf("got %q, want %q", got, want)
+		}
 	})
 }
 
@@ -53,6 +59,19 @@ func TestPut(t *testing.T) {
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusAccepted)
 	})
+	//t.Run("Put new value then Get return that value", func(t *testing.T) {
+	//	store := &StubStore{}
+	//	server := NewServer(store)
+	//	request := httptest.NewRequest(http.MethodPost, "/kv/foo", strings.NewReader("bar"))
+	//	response := httptest.NewRecorder()
+	//	server.ServeHTTP(response, request)
+	//	assertStatus(t, response.Code, http.StatusAccepted)
+	//
+	//	getRequest := httptest.NewRequest(http.MethodGet, "/kv/foo", nil)
+	//	getResponse := httptest.NewRecorder()
+	//	server.ServeHTTP(getResponse, getRequest)
+	//	assertStatus(t, getResponse.Code, http.StatusOK)
+	//})
 }
 
 func assertStatus(t testing.TB, got, want int) {
