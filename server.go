@@ -23,11 +23,15 @@ func (p *Server) storeHandler(w http.ResponseWriter, req *http.Request) {
 	key := strings.TrimPrefix(req.URL.Path, "/kv/")
 	switch req.Method {
 	case http.MethodGet:
-		value, _ := p.store.Get(key)
-		if value == "" {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-		w.Write([]byte(value))
+		p.showValue(w, key)
 	}
+}
+
+func (p *Server) showValue(w http.ResponseWriter, key string) {
+	value, _ := p.store.Get(key)
+	if value == "" {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	w.Write([]byte(value))
 }
