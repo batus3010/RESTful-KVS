@@ -59,6 +59,15 @@ func TestPut(t *testing.T) {
 	})
 }
 
+func TestRestKVS(t *testing.T) {
+	t.Run("Method not allowed should returns StatusMethodNotAllowed", func(t *testing.T) {
+		server, response := newTestServer(map[string]string{})
+		request := httptest.NewRequest(http.MethodDelete, "/kv/foo", nil)
+		server.ServeHTTP(response, request)
+		assertStatus(t, response.Code, http.StatusMethodNotAllowed)
+	})
+}
+
 func newTestServer(initial map[string]string) (*Server, *httptest.ResponseRecorder) {
 	store := &StubStore{kv: initial}
 	srv := NewServer(store)

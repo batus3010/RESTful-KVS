@@ -24,13 +24,15 @@ func (p *Server) storeHandler(w http.ResponseWriter, r *http.Request) {
 	key := strings.TrimPrefix(r.URL.Path, "/kv/")
 	switch r.Method {
 	case http.MethodGet:
-		p.showValue(w, key)
+		p.handleGet(w, key)
 	case http.MethodPost:
 		p.handlePost(w, r, key)
+	default:
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
 }
 
-func (p *Server) showValue(w http.ResponseWriter, key string) {
+func (p *Server) handleGet(w http.ResponseWriter, key string) {
 	value, _ := p.store.Get(key)
 	if value == "" {
 		w.WriteHeader(http.StatusNotFound)
