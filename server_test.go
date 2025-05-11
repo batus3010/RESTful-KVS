@@ -29,6 +29,9 @@ func TestGet(t *testing.T) {
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusNotFound)
 	})
+	t.Run("Get returns value on existing key", func(t *testing.T) {
+		
+	})
 }
 
 func assertStatus(t testing.TB, got, want int) {
