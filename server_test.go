@@ -3,6 +3,7 @@ package kvs
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -40,6 +41,17 @@ func TestGet(t *testing.T) {
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusOK)
+	})
+}
+
+func TestPut(t *testing.T) {
+	t.Run("Put returns 201", func(t *testing.T) {
+		store := &StubStore{}
+		server := NewServer(store)
+		request := httptest.NewRequest(http.MethodPost, "/kv/foo", strings.NewReader("bar"))
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
+		assertStatus(t, response.Code, http.StatusAccepted)
 	})
 }
 

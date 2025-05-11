@@ -24,6 +24,8 @@ func (p *Server) storeHandler(w http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case http.MethodGet:
 		p.showValue(w, key)
+	case http.MethodPost:
+		w.WriteHeader(http.StatusAccepted)
 	}
 }
 
