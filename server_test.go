@@ -112,7 +112,7 @@ func TestRestKVS(t *testing.T) {
 }
 
 func TestAll(t *testing.T) {
-	t.Run("return key value table as JSON", func(t *testing.T) {
+	t.Run("/ all return key value table as JSON", func(t *testing.T) {
 		wantedTable := []KVPair{
 			{Key: "foo", Value: "bar"},
 			{Key: "bar", Value: "baz"},
@@ -121,16 +121,19 @@ func TestAll(t *testing.T) {
 		server, response := newTestServerWithStubStore(store)
 		request := httptest.NewRequest(http.MethodGet, "/all", nil)
 		server.ServeHTTP(response, request)
-		var got []KVPair
-		err := json.NewDecoder(response.Body).Decode(&got)
-		if err != nil {
-			t.Fatalf("Unable to parse response from server %q into slice of KVPair, '%v'", response.Body, err)
-		}
+		got := getTableFromResponse(t, response.Body)
 		assertStatus(t, response.Code, http.StatusOK)
-		if !reflect.DeepEqual(got, wantedTable) {
-			t.Errorf("got %v, want %v", got, wantedTable)
-		}
+		assertTable(t, got, wantedTable)
 	})
+}
+
+func getTableFromResponse(t testing.TB, body io.Reader) (table []KVPair) {
+	t.Helper()
+	err := json.NewDecoder(body).Decode(&table)
+	if err != nil {
+		t.Fatalf("Unable to parse response from server %q into slice of KVPair, '%v'", body, err)
+	}
+	return
 }
 
 func newTestServerWithStubStore(store StubStore) (*Server, *httptest.ResponseRecorder) {
@@ -144,5 +147,12 @@ func assertStatus(t testing.TB, got, want int) {
 	t.Helper()
 	if got != want {
 		t.Errorf("did not get correct status, got %d, want %d", got, want)
+	}
+}
+
+func assertTable(t testing.TB, got, want []KVPair) {
+	t.Helper()
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("got %v, want %v", got, want)
 	}
 }
