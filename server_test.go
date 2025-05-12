@@ -121,6 +121,11 @@ func TestAll(t *testing.T) {
 		server, response := newTestServerWithStubStore(store)
 		request := httptest.NewRequest(http.MethodGet, "/all", nil)
 		server.ServeHTTP(response, request)
+
+		if response.Result().Header.Get("content-type") != "application/json" {
+			t.Errorf("response did not have content-type of application/json, got %v", response.Result().Header)
+		}
+
 		got := getTableFromResponse(t, response.Body)
 		assertStatus(t, response.Code, http.StatusOK)
 		assertTable(t, got, wantedTable)

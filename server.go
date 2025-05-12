@@ -49,8 +49,8 @@ func (srv *Server) storeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (srv *Server) allHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("content-type", "application/json")
 	json.NewEncoder(w).Encode(srv.Store.GetTable())
-	w.WriteHeader(http.StatusOK)
 }
 
 func (srv *Server) getAllPairs() []KVPair {
