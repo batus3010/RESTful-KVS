@@ -122,9 +122,7 @@ func TestAll(t *testing.T) {
 		request := httptest.NewRequest(http.MethodGet, "/all", nil)
 		server.ServeHTTP(response, request)
 
-		if response.Result().Header.Get("content-type") != "application/json" {
-			t.Errorf("response did not have content-type of application/json, got %v", response.Result().Header)
-		}
+		assertContentType(t, response, jsonContentType)
 
 		got := getTableFromResponse(t, response.Body)
 		assertStatus(t, response.Code, http.StatusOK)
@@ -159,5 +157,12 @@ func assertTable(t testing.TB, got, want []KVPair) {
 	t.Helper()
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got %v, want %v", got, want)
+	}
+}
+
+func assertContentType(t testing.TB, response *httptest.ResponseRecorder, want string) {
+	t.Helper()
+	if response.Result().Header.Get("content-type") != want {
+		t.Errorf("response did not have content-type of %s, got %v", want, response.Result().Header)
 	}
 }

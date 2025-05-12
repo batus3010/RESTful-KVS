@@ -9,6 +9,10 @@ import (
 	"time"
 )
 
+const (
+	jsonContentType = "application/json"
+)
+
 type Server struct {
 	Store  KeyValueStore
 	logger *log.Logger
@@ -49,7 +53,7 @@ func (srv *Server) storeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (srv *Server) allHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("content-type", "application/json")
+	w.Header().Set("content-type", jsonContentType)
 	json.NewEncoder(w).Encode(srv.Store.GetTable())
 }
 
