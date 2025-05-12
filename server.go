@@ -49,11 +49,14 @@ func (srv *Server) storeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (srv *Server) allHandler(w http.ResponseWriter, r *http.Request) {
-	kvTable := []KVPair{
-		{Key: "key1", Value: "value1"},
-	}
-	json.NewEncoder(w).Encode(kvTable)
+	json.NewEncoder(w).Encode(srv.getAllKeys())
 	w.WriteHeader(http.StatusOK)
+}
+
+func (srv *Server) getAllKeys() []KVPair {
+	return []KVPair{
+		{"key1", "value1"},
+	}
 }
 
 func (srv *Server) handleGet(w http.ResponseWriter, key string) {
