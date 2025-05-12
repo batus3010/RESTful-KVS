@@ -1,6 +1,7 @@
 package kvs
 
 import (
+	"encoding/json"
 	"io"
 	"log"
 	"net/http"
@@ -12,6 +13,11 @@ type Server struct {
 	Store  KeyValueStore
 	logger *log.Logger
 	http.Handler
+}
+
+type KVPair struct {
+	Key   string
+	Value string
 }
 
 func NewServer(store KeyValueStore, logger *log.Logger) *Server {
@@ -43,6 +49,10 @@ func (srv *Server) storeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (srv *Server) allHandler(w http.ResponseWriter, r *http.Request) {
+	kvTable := []KVPair{
+		{Key: "key1", Value: "value1"},
+	}
+	json.NewEncoder(w).Encode(kvTable)
 	w.WriteHeader(http.StatusOK)
 }
 

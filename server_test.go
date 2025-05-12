@@ -1,6 +1,7 @@
 package kvs
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"log"
@@ -99,8 +100,13 @@ func TestRestKVS(t *testing.T) {
 		server, response := newTestServerWithStubStore(map[string]string{})
 		request := httptest.NewRequest(http.MethodGet, "/all", nil)
 		server.ServeHTTP(response, request)
-		assertStatus(t, response.Code, http.StatusOK)
 
+		var got []KVPair
+		err := json.NewDecoder(response.Body).Decode(&got)
+		if err != nil {
+			t.Fatalf("Unable to parse response from server %q into slice of KVPair, '%v'", response.Body, err)
+		}
+		assertStatus(t, response.Code, http.StatusOK)
 	})
 }
 
