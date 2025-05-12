@@ -95,6 +95,13 @@ func TestRestKVS(t *testing.T) {
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusMethodNotAllowed)
 	})
+	t.Run("It returns 200 on /kv", func(t *testing.T) {
+		server, response := newTestServerWithStubStore(map[string]string{})
+		request := httptest.NewRequest(http.MethodGet, "/all", nil)
+		server.ServeHTTP(response, request)
+		assertStatus(t, response.Code, http.StatusOK)
+
+	})
 }
 
 func newTestServerWithStubStore(initial map[string]string) (*Server, *httptest.ResponseRecorder) {

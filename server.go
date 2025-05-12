@@ -23,6 +23,7 @@ func NewServer(store KeyValueStore, logger *log.Logger) *Server {
 	mux := http.NewServeMux()
 	// wrap storeHandler with requestLogger
 	mux.Handle("/kv/", srv.requestLogger(http.HandlerFunc(srv.storeHandler)))
+	mux.Handle("/all", srv.requestLogger(http.HandlerFunc(srv.allHandler)))
 	srv.Handler = mux
 	return srv
 }
@@ -41,6 +42,10 @@ func (srv *Server) storeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (srv *Server) allHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
 func (srv *Server) handleGet(w http.ResponseWriter, key string) {
 	value, _ := srv.Store.Get(key)
 	if value == "" {
@@ -54,7 +59,12 @@ func (srv *Server) handleGet(w http.ResponseWriter, key string) {
 
 func (srv *Server) handlePost(w http.ResponseWriter, r *http.Request, key string) {
 	body, err := io.ReadAll(r.Body)
-	defer r.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			srv.logger.Printf("POST %q → error closing request body: %v", key, err)
+		}
+	}(r.Body)
 	if err != nil {
 		srv.logger.Printf("POST %q → read error: %v", key, err)
 		http.Error(w, "Error reading request body", http.StatusBadRequest)
