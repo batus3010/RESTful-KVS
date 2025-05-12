@@ -49,11 +49,11 @@ func (srv *Server) storeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (srv *Server) allHandler(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(srv.getAllKeys())
+	json.NewEncoder(w).Encode(srv.getAllPairs())
 	w.WriteHeader(http.StatusOK)
 }
 
-func (srv *Server) getAllKeys() []KVPair {
+func (srv *Server) getAllPairs() []KVPair {
 	return []KVPair{
 		{"key1", "value1"},
 	}

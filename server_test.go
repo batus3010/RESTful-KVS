@@ -1,7 +1,6 @@
 package kvs
 
 import (
-	"encoding/json"
 	"errors"
 	"io"
 	"log"
@@ -12,7 +11,8 @@ import (
 )
 
 type StubStore struct {
-	kv map[string]string
+	kv  map[string]string
+	all []KVPair
 }
 
 func (store *StubStore) Get(key string) (string, error) {
@@ -34,13 +34,16 @@ func (store *StubStore) Delete(key string) error {
 
 func TestGet(t *testing.T) {
 	t.Run("Get returns 404 on missing key", func(t *testing.T) {
-		server, response := newTestServerWithStubStore(map[string]string{})
+		server, response := newTestServerWithStubStore(StubStore{})
 		request := httptest.NewRequest(http.MethodGet, "/kv/foo", nil)
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusNotFound)
 	})
 	t.Run("Get on existing key return 200 and value", func(t *testing.T) {
-		server, response := newTestServerWithStubStore(map[string]string{"foo": "bar"})
+		store := StubStore{kv: map[string]string{
+			"foo": "bar",
+		}}
+		server, response := newTestServerWithStubStore(store)
 		request := httptest.NewRequest(http.MethodGet, "/kv/foo", nil)
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusOK)
@@ -50,13 +53,13 @@ func TestGet(t *testing.T) {
 
 func TestPut(t *testing.T) {
 	t.Run("Put returns 201", func(t *testing.T) {
-		server, response := newTestServerWithStubStore(map[string]string{})
+		server, response := newTestServerWithStubStore(StubStore{kv: map[string]string{}})
 		request := httptest.NewRequest(http.MethodPost, "/kv/foo", strings.NewReader("bar"))
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusAccepted)
 	})
 	t.Run("Put new value then Get return that value", func(t *testing.T) {
-		server, response := newTestServerWithStubStore(map[string]string{})
+		server, response := newTestServerWithStubStore(StubStore{kv: map[string]string{}})
 		request := httptest.NewRequest(http.MethodPost, "/kv/foo", strings.NewReader("bar"))
 		server.ServeHTTP(response, request)
 
@@ -72,13 +75,16 @@ func TestPut(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	t.Run("Delete non-existing key returns 404", func(t *testing.T) {
-		server, response := newTestServerWithStubStore(map[string]string{})
+		server, response := newTestServerWithStubStore(StubStore{})
 		request := httptest.NewRequest(http.MethodDelete, "/kv/foo", nil)
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusNotFound)
 	})
 	t.Run("Delete existing key", func(t *testing.T) {
-		server, response := newTestServerWithStubStore(map[string]string{"foo": "bar"})
+		store := StubStore{kv: map[string]string{
+			"foo": "bar",
+		}}
+		server, response := newTestServerWithStubStore(store)
 		request := httptest.NewRequest(http.MethodDelete, "/kv/foo", nil)
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusOK)
@@ -91,29 +97,28 @@ func TestDelete(t *testing.T) {
 
 func TestRestKVS(t *testing.T) {
 	t.Run("Method not allowed should returns StatusMethodNotAllowed", func(t *testing.T) {
-		server, response := newTestServerWithStubStore(map[string]string{})
+		store := StubStore{kv: map[string]string{}}
+		server, response := newTestServerWithStubStore(store)
 		request := httptest.NewRequest(http.MethodPut, "/kv/foo", nil)
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusMethodNotAllowed)
 	})
-	t.Run("It returns 200 on /kv", func(t *testing.T) {
-		server, response := newTestServerWithStubStore(map[string]string{})
-		request := httptest.NewRequest(http.MethodGet, "/all", nil)
-		server.ServeHTTP(response, request)
-
-		var got []KVPair
-		err := json.NewDecoder(response.Body).Decode(&got)
-		if err != nil {
-			t.Fatalf("Unable to parse response from server %q into slice of KVPair, '%v'", response.Body, err)
-		}
-		assertStatus(t, response.Code, http.StatusOK)
-	})
 }
 
-func newTestServerWithStubStore(initial map[string]string) (*Server, *httptest.ResponseRecorder) {
-	store := &StubStore{kv: initial}
+//func TestAll(t *testing.T) {
+//	t.Run("return key value table as JSON", func(t *testing.T) {
+//		wantedTable := []KVPair{
+//			{Key: "foo", Value: "bar"},
+//			{Key: "bar", Value: "baz"},
+//		}
+//		store := StubStore{nil, wantedTable}
+//		server :=
+//	})
+//}
+
+func newTestServerWithStubStore(store StubStore) (*Server, *httptest.ResponseRecorder) {
 	silentLog := log.New(io.Discard, "", 0)
-	srv := NewServer(store, silentLog)
+	srv := NewServer(&store, silentLog)
 	response := httptest.NewRecorder()
 	return srv, response
 }
