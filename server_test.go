@@ -1,11 +1,13 @@
 package kvs
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -30,6 +32,10 @@ func (store *StubStore) Put(key string, value string) error {
 func (store *StubStore) Delete(key string) error {
 	delete(store.kv, key)
 	return nil
+}
+
+func (store *StubStore) GetTable() []KVPair {
+	return store.all
 }
 
 func TestGet(t *testing.T) {
@@ -105,16 +111,27 @@ func TestRestKVS(t *testing.T) {
 	})
 }
 
-//func TestAll(t *testing.T) {
-//	t.Run("return key value table as JSON", func(t *testing.T) {
-//		wantedTable := []KVPair{
-//			{Key: "foo", Value: "bar"},
-//			{Key: "bar", Value: "baz"},
-//		}
-//		store := StubStore{nil, wantedTable}
-//		server :=
-//	})
-//}
+func TestAll(t *testing.T) {
+	t.Run("return key value table as JSON", func(t *testing.T) {
+		wantedTable := []KVPair{
+			{Key: "foo", Value: "bar"},
+			{Key: "bar", Value: "baz"},
+		}
+		store := StubStore{nil, wantedTable}
+		server, response := newTestServerWithStubStore(store)
+		request := httptest.NewRequest(http.MethodGet, "/all", nil)
+		server.ServeHTTP(response, request)
+		var got []KVPair
+		err := json.NewDecoder(response.Body).Decode(&got)
+		if err != nil {
+			t.Fatalf("Unable to parse response from server %q into slice of KVPair, '%v'", response.Body, err)
+		}
+		assertStatus(t, response.Code, http.StatusOK)
+		if !reflect.DeepEqual(got, wantedTable) {
+			t.Errorf("got %v, want %v", got, wantedTable)
+		}
+	})
+}
 
 func newTestServerWithStubStore(store StubStore) (*Server, *httptest.ResponseRecorder) {
 	silentLog := log.New(io.Discard, "", 0)

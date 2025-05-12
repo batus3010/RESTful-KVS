@@ -49,7 +49,7 @@ func (srv *Server) storeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (srv *Server) allHandler(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(srv.getAllPairs())
+	json.NewEncoder(w).Encode(srv.Store.GetTable())
 	w.WriteHeader(http.StatusOK)
 }
 
