@@ -57,12 +57,6 @@ func (srv *Server) allHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(srv.Store.GetTable())
 }
 
-func (srv *Server) getAllPairs() []KVPair {
-	return []KVPair{
-		{"key1", "value1"},
-	}
-}
-
 func (srv *Server) handleGet(w http.ResponseWriter, key string) {
 	value, _ := srv.Store.Get(key)
 	if value == "" {

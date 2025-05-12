@@ -121,7 +121,6 @@ func TestAll(t *testing.T) {
 		server, response := newTestServerWithStubStore(store)
 		request := httptest.NewRequest(http.MethodGet, "/all", nil)
 		server.ServeHTTP(response, request)
-
 		assertContentType(t, response, jsonContentType)
 
 		got := getTableFromResponse(t, response.Body)

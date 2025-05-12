@@ -50,19 +50,20 @@ func TestInMemoryKVSIntegration(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error after Delete, got nil")
 	}
-	// optionally check error message
 	if !errors.Is(err, errors.New(ErrMsgKeyNotFound)) && err.Error() != ErrMsgKeyNotFound {
 		t.Fatalf("expected ErrMsgKeyNotFound, got %v", err)
 	}
 }
 
+// --- HTTP server integration ---
+
+// newTestServer gives you a Server with an empty InMemoryKVS and a silent logger.
 func newTestServer() *Server {
 	logger := log.New(io.Discard, "", 0)
 	return NewServer(NewInMemoryKVS(), logger)
 }
 
-func TestServerIntegration(t *testing.T) {
-	// Create server backed by a fresh in-memory Store
+func TestHTTPIntegration(t *testing.T) {
 	srv := newTestServer()
 
 	// 1) GET missing key → 404
@@ -70,10 +71,7 @@ func TestServerIntegration(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/kv/foo", nil)
 		rec := httptest.NewRecorder()
 		srv.ServeHTTP(rec, req)
-
-		if rec.Code != http.StatusNotFound {
-			t.Errorf("GET missing: expected 404, got %d", rec.Code)
-		}
+		assertStatus(t, rec.Code, http.StatusNotFound)
 	}
 
 	// 2) POST new key → 202 Accepted
@@ -81,10 +79,7 @@ func TestServerIntegration(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/kv/foo", strings.NewReader("bar"))
 		rec := httptest.NewRecorder()
 		srv.ServeHTTP(rec, req)
-
-		if rec.Code != http.StatusAccepted {
-			t.Errorf("POST create: expected 202, got %d", rec.Code)
-		}
+		assertStatus(t, rec.Code, http.StatusAccepted)
 	}
 
 	// 3) GET existing key → 200 OK + "bar"
@@ -92,14 +87,8 @@ func TestServerIntegration(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/kv/foo", nil)
 		rec := httptest.NewRecorder()
 		srv.ServeHTTP(rec, req)
-
-		if rec.Code != http.StatusOK {
-			t.Errorf("GET existing: expected 200, got %d", rec.Code)
-		}
-		got, _ := io.ReadAll(rec.Body)
-		if gotStr := string(got); gotStr != "bar" {
-			t.Errorf("GET existing: expected body %q, got %q", "bar", gotStr)
-		}
+		assertStatus(t, rec.Code, http.StatusOK)
+		assertBody(t, rec.Body, "bar")
 	}
 
 	// 4) DELETE existing key → 200 OK
@@ -107,10 +96,7 @@ func TestServerIntegration(t *testing.T) {
 		req := httptest.NewRequest(http.MethodDelete, "/kv/foo", nil)
 		rec := httptest.NewRecorder()
 		srv.ServeHTTP(rec, req)
-
-		if rec.Code != http.StatusOK {
-			t.Errorf("DELETE existing: expected 200, got %d", rec.Code)
-		}
+		assertStatus(t, rec.Code, http.StatusOK)
 	}
 
 	// 5) GET after delete → 404 Not Found
@@ -118,10 +104,7 @@ func TestServerIntegration(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/kv/foo", nil)
 		rec := httptest.NewRecorder()
 		srv.ServeHTTP(rec, req)
-
-		if rec.Code != http.StatusNotFound {
-			t.Errorf("GET after delete: expected 404, got %d", rec.Code)
-		}
+		assertStatus(t, rec.Code, http.StatusNotFound)
 	}
 
 	// 6) DELETE missing key → 404 Not Found
@@ -129,9 +112,46 @@ func TestServerIntegration(t *testing.T) {
 		req := httptest.NewRequest(http.MethodDelete, "/kv/nonexistent", nil)
 		rec := httptest.NewRecorder()
 		srv.ServeHTTP(rec, req)
+		assertStatus(t, rec.Code, http.StatusNotFound)
+	}
+}
 
-		if rec.Code != http.StatusNotFound {
-			t.Errorf("DELETE missing: expected 404, got %d", rec.Code)
-		}
+//func TestListAllKeys(t *testing.T) {
+//	// seed store with two entries
+//	store := NewInMemoryKVS()
+//	store.Put("foo", "bar")
+//	store.Put("baz", "qux")
+//
+//	srv := newTestServer()
+//	// replace the store inside srv so it's pre-populated
+//	srv.Store = store
+//
+//	// GET /all → JSON array of KVPair
+//	req := httptest.NewRequest(http.MethodGet, "/all", nil)
+//	rec := httptest.NewRecorder()
+//	srv.ServeHTTP(rec, req)
+//
+//	// should return 200 + application/json
+//	assertStatus(t, rec.Code, http.StatusOK)
+//	assertContentType(t, rec, jsonContentType)
+//
+//	// decode and compare
+//	got := getTableFromResponse(t, rec.Body)
+//
+//	expected := []KVPair{
+//		{Key: "foo", Value: "bar"},
+//		{Key: "baz", Value: "qux"},
+//	}
+//	assertTable(t, got, expected)
+//}
+
+func assertBody(t testing.TB, body io.Reader, want string) {
+	t.Helper()
+	b, err := io.ReadAll(body)
+	if err != nil {
+		t.Fatalf("reading body: %v", err)
+	}
+	if got := string(b); got != want {
+		t.Errorf("body: got %q, want %q", got, want)
 	}
 }
