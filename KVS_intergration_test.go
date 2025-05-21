@@ -116,34 +116,34 @@ func TestHTTPIntegration(t *testing.T) {
 	}
 }
 
-//func TestListAllKeys(t *testing.T) {
-//	// seed store with two entries
-//	store := NewInMemoryKVS()
-//	store.Put("foo", "bar")
-//	store.Put("baz", "qux")
-//
-//	srv := newTestServer()
-//	// replace the store inside srv so it's pre-populated
-//	srv.Store = store
-//
-//	// GET /all → JSON array of KVPair
-//	req := httptest.NewRequest(http.MethodGet, "/all", nil)
-//	rec := httptest.NewRecorder()
-//	srv.ServeHTTP(rec, req)
-//
-//	// should return 200 + application/json
-//	assertStatus(t, rec.Code, http.StatusOK)
-//	assertContentType(t, rec, jsonContentType)
-//
-//	// decode and compare
-//	got := getTableFromResponse(t, rec.Body)
-//
-//	expected := []KVPair{
-//		{Key: "foo", Value: "bar"},
-//		{Key: "baz", Value: "qux"},
-//	}
-//	assertTable(t, got, expected)
-//}
+func TestListAllKeys(t *testing.T) {
+	// seed store with two entries
+	store := NewInMemoryKVS()
+	store.Put("foo", "bar")
+	store.Put("baz", "qux")
+
+	srv := newTestServer()
+	// replace the store inside srv so it's pre-populated
+	srv.Store = store
+
+	// GET /all → JSON array of KVPair
+	req := httptest.NewRequest(http.MethodGet, "/all", nil)
+	rec := httptest.NewRecorder()
+	srv.ServeHTTP(rec, req)
+
+	// should return 200 + application/json
+	assertStatus(t, rec.Code, http.StatusOK)
+	assertContentType(t, rec, jsonContentType)
+
+	// decode and compare
+	got := getTableFromResponse(t, rec.Body)
+
+	expected := []KVPair{
+		{Key: "foo", Value: "bar"},
+		{Key: "baz", Value: "qux"},
+	}
+	assertTable(t, got, expected)
+}
 
 func assertBody(t testing.TB, body io.Reader, want string) {
 	t.Helper()

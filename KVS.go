@@ -41,5 +41,9 @@ func (kvs *InMemoryKVS) Delete(key string) error {
 }
 
 func (kvs *InMemoryKVS) GetTable() []KVPair {
-	return nil
+	var KVPairs []KVPair
+	for key, value := range kvs.Store {
+		KVPairs = append(KVPairs, KVPair{key, value})
+	}
+	return KVPairs
 }
