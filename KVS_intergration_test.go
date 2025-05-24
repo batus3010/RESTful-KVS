@@ -138,7 +138,7 @@ func TestListAllKeys(t *testing.T) {
 	// decode and compare
 	got := getTableFromResponse(t, rec.Body)
 
-	expected := []KVPair{
+	expected := Table{
 		{Key: "foo", Value: "bar"},
 		{Key: "baz", Value: "qux"},
 	}

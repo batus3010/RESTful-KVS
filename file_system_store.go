@@ -25,10 +25,9 @@ func (f *FileSystemKVStore) GetValueOf(key string) string {
 
 func (f *FileSystemKVStore) Update(key string, value string) {
 	table := f.GetTable()
-	for i, k := range table {
-		if k.Key == key {
-			table[i].Value = value
-		}
+	pair := table.Find(key)
+	if pair != nil {
+		pair.Value = value
 	}
 	f.database.Seek(0, io.SeekStart)
 	json.NewEncoder(f.database).Encode(table)
