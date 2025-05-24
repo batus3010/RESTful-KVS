@@ -33,7 +33,7 @@ func (store *StubStore) Delete(key string) error {
 	return nil
 }
 
-func (store *StubStore) GetTable() []KVPair {
+func (store *StubStore) GetTable() Table {
 	return store.all
 }
 

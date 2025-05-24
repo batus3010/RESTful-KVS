@@ -10,7 +10,7 @@ type KeyValueStore interface {
 	Put(key, value string) error
 	Get(key string) (string, error)
 	Delete(key string) error
-	GetTable() []KVPair
+	GetTable() Table
 }
 
 type InMemoryKVS struct {
@@ -40,7 +40,7 @@ func (kvs *InMemoryKVS) Delete(key string) error {
 	return nil
 }
 
-func (kvs *InMemoryKVS) GetTable() []KVPair {
+func (kvs *InMemoryKVS) GetTable() Table {
 	var KVPairs []KVPair
 	for key, value := range kvs.Store {
 		KVPairs = append(KVPairs, KVPair{key, value})
