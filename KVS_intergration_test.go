@@ -11,7 +11,7 @@ import (
 )
 
 func TestInMemoryKVSIntegration(t *testing.T) {
-	database, cleanDatabase := createTempFileSystem(t, `[]`)
+	database, cleanDatabase := createTempFileSystem(t, "")
 	defer cleanDatabase()
 	store, err := NewFileSystemKVStore(database)
 	assertNoError(t, err)
@@ -127,7 +127,7 @@ func TestHTTPIntegration(t *testing.T) {
 
 func TestListAllKeys(t *testing.T) {
 	// seed store with two entries
-	database, cleanDatabase := createTempFileSystem(t, `[]`)
+	database, cleanDatabase := createTempFileSystem(t, "")
 	defer cleanDatabase()
 	store, err := NewFileSystemKVStore(database)
 	assertNoError(t, err)

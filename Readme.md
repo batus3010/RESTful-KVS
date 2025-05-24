@@ -147,7 +147,6 @@ Key-Value-Store/
 
 ## Future Work
 
-0. **In progress**: Persist the data in disk, probably by a Json file
 1. **Fault Tolerance & Replication**: Integrate a consensus algorithm (e.g., Raft) to replicate state across nodes and achieve leader election.
 2. **Distributed Deployment**: Container orchestration with Kubernetes StatefulSets, service discovery, and sharding.
 3. **Tunable Consistency**: Expose consistency levels (ONE, QUORUM, ALL) and implement anti-entropy for eventual convergence.
