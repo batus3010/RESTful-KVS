@@ -7,12 +7,12 @@ import (
 )
 
 type FileSystemKVStore struct {
-	database io.ReadWriteSeeker
+	Database io.ReadWriteSeeker
 }
 
 func (f *FileSystemKVStore) GetTable() Table {
-	f.database.Seek(0, io.SeekStart)
-	table, _ := NewTable(f.database)
+	f.Database.Seek(0, io.SeekStart)
+	table, _ := NewTable(f.Database)
 	return table
 }
 
@@ -32,8 +32,8 @@ func (f *FileSystemKVStore) Put(key string, value string) error {
 	} else {
 		table = append(table, KVPair{key, value})
 	}
-	f.database.Seek(0, io.SeekStart)
-	json.NewEncoder(f.database).Encode(table)
+	f.Database.Seek(0, io.SeekStart)
+	json.NewEncoder(f.Database).Encode(table)
 	return nil
 }
 
@@ -44,21 +44,21 @@ func (f *FileSystemKVStore) Delete(key string) error {
 	}
 
 	// Seek back to the beginning of file
-	if _, err := f.database.Seek(0, io.SeekStart); err != nil {
+	if _, err := f.Database.Seek(0, io.SeekStart); err != nil {
 		return err
 	}
 
 	// Truncate the file so old JSON is wiped
-	if t, ok := f.database.(interface{ Truncate(int64) error }); ok {
+	if t, ok := f.Database.(interface{ Truncate(int64) error }); ok {
 		if err := t.Truncate(0); err != nil {
 			return err
 		}
 		// seek again just in case
-		if _, err := f.database.Seek(0, io.SeekStart); err != nil {
+		if _, err := f.Database.Seek(0, io.SeekStart); err != nil {
 			return err
 		}
 	}
 
 	// Encode the updated table back to disk
-	return json.NewEncoder(f.database).Encode(table)
+	return json.NewEncoder(f.Database).Encode(table)
 }
