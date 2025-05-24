@@ -6,6 +6,14 @@ import (
 )
 
 func TestFileSystemStore(t *testing.T) {
+	t.Run("works with an empty file", func(t *testing.T) {
+		database, cleanDatabase := createTempFileSystem(t, "")
+		defer cleanDatabase()
+
+		_, err := NewFileSystemKVStore(database)
+
+		assertNoError(t, err)
+	})
 
 	t.Run("KV table from a reader", func(t *testing.T) {
 		database, cleanDatabase := createTempFileSystem(t, `[
