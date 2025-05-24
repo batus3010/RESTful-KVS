@@ -26,7 +26,12 @@ func main() {
 		logger.Fatalf("failed to open database file: %v", err)
 	}
 	defer dbFile.Close()
-	store := kvs.NewFileSystemKVStore(dbFile)
+	store, err := kvs.NewFileSystemKVStore(dbFile)
+
+	if err != nil {
+		logger.Fatalf("failed to initialize store: %v", err)
+	}
+
 	server := kvs.NewServer(store, logger)
 	logger.Printf("starting server on :5000")
 	if err := http.ListenAndServe(":5000", server); err != nil {

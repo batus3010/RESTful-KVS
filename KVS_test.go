@@ -3,7 +3,7 @@ package kvs
 import "testing"
 
 func TestKVS(t *testing.T) {
-	database, cleanDatabase := createTempFileSystem(t, "")
+	database, cleanDatabase := createTempFileSystem(t, `[]`)
 	defer cleanDatabase()
 	cases := []struct {
 		name      string
@@ -40,7 +40,8 @@ func TestKVS(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			kvs := NewFileSystemKVStore(database)
+			kvs, err := NewFileSystemKVStore(database)
+			assertNoError(t, err)
 			tc.setup(kvs)
 			got, err := kvs.Get(tc.key)
 			if tc.wantErr {

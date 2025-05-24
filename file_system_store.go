@@ -3,6 +3,7 @@ package kvs
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 )
@@ -12,14 +13,18 @@ type FileSystemKVStore struct {
 	table    Table
 }
 
-func NewFileSystemKVStore(file *os.File) *FileSystemKVStore {
+func NewFileSystemKVStore(file *os.File) (*FileSystemKVStore, error) {
 	file.Seek(0, io.SeekStart)
-	table, _ := NewTable(file)
+	table, err := NewTable(file)
+
+	if err != nil {
+		return nil, fmt.Errorf("problem loading player store from file %s, %v", file.Name(), err)
+	}
 
 	return &FileSystemKVStore{
 		database: json.NewEncoder(&rewindableWriter{file}),
 		table:    table,
-	}
+	}, nil
 }
 
 func (f *FileSystemKVStore) GetTable() Table {

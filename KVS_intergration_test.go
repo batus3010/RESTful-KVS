@@ -11,9 +11,10 @@ import (
 )
 
 func TestInMemoryKVSIntegration(t *testing.T) {
-	database, cleanDatabase := createTempFileSystem(t, "")
+	database, cleanDatabase := createTempFileSystem(t, `[]`)
 	defer cleanDatabase()
-	store := NewFileSystemKVStore(database)
+	store, err := NewFileSystemKVStore(database)
+	assertNoError(t, err)
 
 	// 1) Getting a missing key should error
 	if val, err := store.Get("missing"); err == nil {
@@ -62,9 +63,12 @@ func TestInMemoryKVSIntegration(t *testing.T) {
 // newTestServer gives you a Server with an empty file system store and a silent logger.
 func newTestServer(t testing.TB) *Server {
 	logger := log.New(io.Discard, "", 0)
-	database, cleanDatabase := createTempFileSystem(t, "")
+	database, cleanDatabase := createTempFileSystem(t, `[]`)
 	t.Cleanup(cleanDatabase) // close database file after the tests
-	store := NewFileSystemKVStore(database)
+	store, err := NewFileSystemKVStore(database)
+	if err != nil {
+		t.Fatal(err)
+	}
 	return NewServer(store, logger)
 }
 
@@ -123,9 +127,11 @@ func TestHTTPIntegration(t *testing.T) {
 
 func TestListAllKeys(t *testing.T) {
 	// seed store with two entries
-	database, cleanDatabase := createTempFileSystem(t, "")
+	database, cleanDatabase := createTempFileSystem(t, `[]`)
 	defer cleanDatabase()
-	store := NewFileSystemKVStore(database)
+	store, err := NewFileSystemKVStore(database)
+	assertNoError(t, err)
+
 	store.Put("foo", "bar")
 	store.Put("baz", "qux")
 
