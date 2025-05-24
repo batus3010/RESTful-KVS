@@ -7,15 +7,17 @@ import (
 )
 
 type FileSystemKVStore struct {
-	database io.ReadWriteSeeker
+	database io.Writer
 	table    Table
 }
 
 func NewFileSystemKVStore(database io.ReadWriteSeeker) *FileSystemKVStore {
 	database.Seek(0, io.SeekStart)
 	table, _ := NewTable(database)
+
+	writer := &rewindableWriter{file: database}
 	return &FileSystemKVStore{
-		database: database,
+		database: writer,
 		table:    table,
 	}
 }
@@ -39,32 +41,13 @@ func (f *FileSystemKVStore) Put(key string, value string) error {
 	} else {
 		f.table = append(f.table, KVPair{key, value})
 	}
-	f.database.Seek(0, io.SeekStart)
-	json.NewEncoder(f.database).Encode(f.table)
-	return nil
+	return json.NewEncoder(f.database).Encode(f.table)
 }
 
 func (f *FileSystemKVStore) Delete(key string) error {
 	if !f.table.Remove(key) {
 		return errors.New(ErrMsgKeyNotFound)
 	}
-
-	// Seek back to the beginning of file
-	if _, err := f.database.Seek(0, io.SeekStart); err != nil {
-		return err
-	}
-
-	// Truncate the file so old JSON is wiped
-	if t, ok := f.database.(interface{ Truncate(int64) error }); ok {
-		if err := t.Truncate(0); err != nil {
-			return err
-		}
-		// seek again just in case
-		if _, err := f.database.Seek(0, io.SeekStart); err != nil {
-			return err
-		}
-	}
-
-	// Encode the updated table back to disk
+	// one call to rewrite the file
 	return json.NewEncoder(f.database).Encode(f.table)
 }
