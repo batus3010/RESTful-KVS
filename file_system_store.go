@@ -16,9 +16,11 @@ func (f *FileSystemKVStore) GetTable() Table {
 }
 
 func (f *FileSystemKVStore) GetValueOf(key string) string {
-	var value string
-
-	return value
+	pair := f.GetTable().Find(key)
+	if pair != nil {
+		return pair.Value
+	}
+	return ""
 }
 
 func (f *FileSystemKVStore) Update(key string, value string) {
