@@ -1,7 +1,6 @@
 package kvs
 
 import (
-	"encoding/json"
 	"io"
 )
 
@@ -10,7 +9,6 @@ type FileKVStore struct {
 }
 
 func (f *FileKVStore) GetTable() []KVPair {
-	var table []KVPair
-	json.NewDecoder(f.database).Decode(&table)
+	table, _ := NewTable(f.database)
 	return table
 }

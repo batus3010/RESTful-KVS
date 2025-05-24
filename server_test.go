@@ -1,7 +1,6 @@
 package kvs
 
 import (
-	"encoding/json"
 	"errors"
 	"io"
 	"log"
@@ -131,11 +130,11 @@ func TestAll(t *testing.T) {
 
 func getTableFromResponse(t testing.TB, body io.Reader) (table []KVPair) {
 	t.Helper()
-	err := json.NewDecoder(body).Decode(&table)
+	table, err := NewTable(body)
 	if err != nil {
-		t.Fatalf("Unable to parse response from server %q into slice of KVPair, '%v'", body, err)
+		t.Fatal(err)
 	}
-	return
+	return table
 }
 
 func newTestServerWithStubStore(store StubStore) (*Server, *httptest.ResponseRecorder) {
