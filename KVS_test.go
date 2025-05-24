@@ -3,7 +3,7 @@ package kvs
 import "testing"
 
 func TestKVS(t *testing.T) {
-	database, cleanDatabase := createTempFileSystem(t, `[]`)
+	database, cleanDatabase := createTempFileSystem(t, "")
 	defer cleanDatabase()
 	cases := []struct {
 		name      string
