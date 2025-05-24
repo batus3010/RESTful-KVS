@@ -1,7 +1,6 @@
 package kvs
 
 import (
-	"io"
 	"os"
 	"testing"
 )
@@ -66,7 +65,7 @@ func TestFileSystemStore(t *testing.T) {
 	})
 }
 
-func createTempFileSystem(t testing.TB, initialData string) (io.ReadWriteSeeker, func()) {
+func createTempFileSystem(t testing.TB, initialData string) (*os.File, func()) {
 	t.Helper()
 	tmpfile, err := os.CreateTemp("", "db")
 	if err != nil {

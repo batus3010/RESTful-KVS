@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"os"
 )
 
 type FileSystemKVStore struct {
@@ -11,11 +12,11 @@ type FileSystemKVStore struct {
 	table    Table
 }
 
-func NewFileSystemKVStore(database io.ReadWriteSeeker) *FileSystemKVStore {
-	database.Seek(0, io.SeekStart)
-	table, _ := NewTable(database)
+func NewFileSystemKVStore(file *os.File) *FileSystemKVStore {
+	file.Seek(0, io.SeekStart)
+	table, _ := NewTable(file)
 
-	writer := &rewindableWriter{file: database}
+	writer := &rewindableWriter{file: file}
 	return &FileSystemKVStore{
 		database: writer,
 		table:    table,

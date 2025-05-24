@@ -1,27 +1,28 @@
 package kvs
 
-import "io"
+import (
+	"io"
+	"os"
+)
 
 // rewindableWriter encapsulate the action: "when we write we go from the beginning" of the file
 type rewindableWriter struct {
-	file io.ReadWriteSeeker
+	file *os.File
 }
 
 func (w *rewindableWriter) Write(p []byte) (n int, err error) {
-	// rewind to the beginning
+	// 1) Rewind
 	if _, err = w.file.Seek(0, io.SeekStart); err != nil {
 		return 0, err
 	}
-	// truncate if possible
-	if t, ok := w.file.(interface{ Truncate(int64) error }); ok {
-		if err = t.Truncate(0); err != nil {
-			return 0, err
-		}
-		// make sure cursor is at zero after truncation
-		if _, err = w.file.Seek(0, io.SeekStart); err != nil {
-			return 0, err
-		}
+	// 2) Truncate the file to zero length
+	if err = w.file.Truncate(0); err != nil {
+		return 0, err
 	}
-	// now write the full payload in one shot
+	// 3) Rewind again (Truncate may move the offset)
+	if _, err = w.file.Seek(0, io.SeekStart); err != nil {
+		return 0, err
+	}
+	// 4) Write new data
 	return w.file.Write(p)
 }
