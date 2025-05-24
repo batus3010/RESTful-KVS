@@ -30,8 +30,6 @@ func TestFileSystemStore(t *testing.T) {
 		store := FileSystemKVStore{database}
 		got := store.GetValueOf("key1")
 		want := "value1"
-		if got != want {
-			t.Errorf("got %q, want %q", got, want)
-		}
+		assertEqual(t, got, want)
 	})
 }
