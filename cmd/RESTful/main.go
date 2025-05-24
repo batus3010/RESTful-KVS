@@ -26,7 +26,7 @@ func main() {
 		logger.Fatalf("failed to open database file: %v", err)
 	}
 	defer dbFile.Close()
-	store := &kvs.FileSystemKVStore{dbFile}
+	store := kvs.NewFileSystemKVStore(dbFile)
 	server := kvs.NewServer(store, logger)
 	logger.Printf("starting server on :5000")
 	if err := http.ListenAndServe(":5000", server); err != nil {
