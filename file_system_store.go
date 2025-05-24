@@ -9,7 +9,7 @@ type FileSystemKVStore struct {
 	database io.ReadWriteSeeker
 }
 
-func (f *FileSystemKVStore) GetTable() []KVPair {
+func (f *FileSystemKVStore) GetTable() Table {
 	f.database.Seek(0, io.SeekStart)
 	table, _ := NewTable(f.database)
 	return table
@@ -17,12 +17,7 @@ func (f *FileSystemKVStore) GetTable() []KVPair {
 
 func (f *FileSystemKVStore) GetValueOf(key string) string {
 	var value string
-	for _, k := range f.GetTable() {
-		if k.Key == key {
-			value = k.Value
-			break
-		}
-	}
+
 	return value
 }
 

@@ -9,12 +9,12 @@ import (
 type Table []KVPair
 
 func NewTable(rdr io.Reader) ([]KVPair, error) {
-	var KVPairs []KVPair
-	err := json.NewDecoder(rdr).Decode(&KVPairs)
+	var table Table
+	err := json.NewDecoder(rdr).Decode(&table)
 	if err != nil {
 		err = fmt.Errorf("problem parsing table, %v", err)
 	}
-	return KVPairs, err
+	return table, err
 }
 
 func (table Table) Find(key string) *KVPair {
