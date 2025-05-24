@@ -11,7 +11,9 @@ import (
 )
 
 func TestInMemoryKVSIntegration(t *testing.T) {
-	store := NewInMemoryKVS()
+	database, cleanDatabase := createTempFileSystem(t, "")
+	defer cleanDatabase()
+	store := &FileSystemKVStore{database}
 
 	// 1) Getting a missing key should error
 	if val, err := store.Get("missing"); err == nil {
@@ -48,7 +50,7 @@ func TestInMemoryKVSIntegration(t *testing.T) {
 	}
 	_, err = store.Get("foo")
 	if err == nil {
-		t.Fatal("expected error after Delete, got nil")
+		t.Fatal("expected error ErrMsgKeyNotFound after Delete, got nil")
 	}
 	if !errors.Is(err, errors.New(ErrMsgKeyNotFound)) && err.Error() != ErrMsgKeyNotFound {
 		t.Fatalf("expected ErrMsgKeyNotFound, got %v", err)

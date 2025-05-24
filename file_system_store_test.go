@@ -33,7 +33,7 @@ func TestFileSystemStore(t *testing.T) {
 			{"Key": "key2", "Value": "value2"}]`)
 		defer cleanDatabase()
 		store := FileSystemKVStore{database}
-		got := store.GetValueOf("key1")
+		got, _ := store.Get("key1")
 		want := "value1"
 		assertEqual(t, got, want)
 	})
@@ -45,8 +45,8 @@ func TestFileSystemStore(t *testing.T) {
 		defer cleanDatabase()
 
 		store := FileSystemKVStore{database}
-		store.Update("key1", "new value")
-		got := store.GetValueOf("key1")
+		store.Put("key1", "new value")
+		got, _ := store.Get("key1")
 		want := "new value"
 		assertEqual(t, got, want)
 	})
@@ -59,8 +59,8 @@ func TestFileSystemStore(t *testing.T) {
 
 		store := FileSystemKVStore{database}
 
-		store.Update("key3", "value3")
-		got := store.GetValueOf("key3")
+		store.Put("key3", "value3")
+		got, _ := store.Get("key3")
 		want := "value3"
 		assertEqual(t, got, want)
 	})
