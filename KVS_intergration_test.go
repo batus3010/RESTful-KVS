@@ -13,7 +13,7 @@ import (
 func TestInMemoryKVSIntegration(t *testing.T) {
 	database, cleanDatabase := createTempFileSystem(t, "")
 	defer cleanDatabase()
-	store := &FileSystemKVStore{database}
+	store := NewFileSystemKVStore(database)
 
 	// 1) Getting a missing key should error
 	if val, err := store.Get("missing"); err == nil {

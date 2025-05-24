@@ -7,17 +7,25 @@ import (
 )
 
 type FileSystemKVStore struct {
-	Database io.ReadWriteSeeker
+	database io.ReadWriteSeeker
+	table    Table
+}
+
+func NewFileSystemKVStore(database io.ReadWriteSeeker) *FileSystemKVStore {
+	database.Seek(0, io.SeekStart)
+	table, _ := NewTable(database)
+	return &FileSystemKVStore{
+		database: database,
+		table:    table,
+	}
 }
 
 func (f *FileSystemKVStore) GetTable() Table {
-	f.Database.Seek(0, io.SeekStart)
-	table, _ := NewTable(f.Database)
-	return table
+	return f.table
 }
 
 func (f *FileSystemKVStore) Get(key string) (string, error) {
-	pair := f.GetTable().Find(key)
+	pair := f.table.Find(key)
 	if pair != nil {
 		return pair.Value, nil
 	}
@@ -25,40 +33,38 @@ func (f *FileSystemKVStore) Get(key string) (string, error) {
 }
 
 func (f *FileSystemKVStore) Put(key string, value string) error {
-	table := f.GetTable()
-	pair := table.Find(key)
+	pair := f.table.Find(key)
 	if pair != nil {
 		pair.Value = value
 	} else {
-		table = append(table, KVPair{key, value})
+		f.table = append(f.table, KVPair{key, value})
 	}
-	f.Database.Seek(0, io.SeekStart)
-	json.NewEncoder(f.Database).Encode(table)
+	f.database.Seek(0, io.SeekStart)
+	json.NewEncoder(f.database).Encode(f.table)
 	return nil
 }
 
 func (f *FileSystemKVStore) Delete(key string) error {
-	table := f.GetTable()
-	if !table.Remove(key) {
+	if !f.table.Remove(key) {
 		return errors.New(ErrMsgKeyNotFound)
 	}
 
 	// Seek back to the beginning of file
-	if _, err := f.Database.Seek(0, io.SeekStart); err != nil {
+	if _, err := f.database.Seek(0, io.SeekStart); err != nil {
 		return err
 	}
 
 	// Truncate the file so old JSON is wiped
-	if t, ok := f.Database.(interface{ Truncate(int64) error }); ok {
+	if t, ok := f.database.(interface{ Truncate(int64) error }); ok {
 		if err := t.Truncate(0); err != nil {
 			return err
 		}
 		// seek again just in case
-		if _, err := f.Database.Seek(0, io.SeekStart); err != nil {
+		if _, err := f.database.Seek(0, io.SeekStart); err != nil {
 			return err
 		}
 	}
 
 	// Encode the updated table back to disk
-	return json.NewEncoder(f.Database).Encode(table)
+	return json.NewEncoder(f.database).Encode(f.table)
 }
