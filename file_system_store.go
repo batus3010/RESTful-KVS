@@ -38,41 +38,27 @@ func (f *FileSystemKVStore) Put(key string, value string) error {
 }
 
 func (f *FileSystemKVStore) Delete(key string) error {
-	// 1) Load current entries
 	table := f.GetTable()
-
-	// 2) Build a new table without the deleted key
-	var newTable Table
-	var found bool
-	for _, pair := range table {
-		if pair.Key == key {
-			found = true
-			continue
-		}
-		newTable = append(newTable, pair)
-	}
-
-	// 3) Key not found → error
-	if !found {
+	if !table.Remove(key) {
 		return errors.New(ErrMsgKeyNotFound)
 	}
 
-	// 4) Overwrite the file from the beginning
-	// Seek to start
+	// Seek back to the beginning of file
 	if _, err := f.database.Seek(0, io.SeekStart); err != nil {
 		return err
 	}
-	// Truncate if supported (e.g. os.File)
+
+	// Truncate the file so old JSON is wiped
 	if t, ok := f.database.(interface{ Truncate(int64) error }); ok {
 		if err := t.Truncate(0); err != nil {
 			return err
 		}
-		// Seek again just in case
+		// seek again just in case
 		if _, err := f.database.Seek(0, io.SeekStart); err != nil {
 			return err
 		}
 	}
 
-	// Encode the new table
-	return json.NewEncoder(f.database).Encode(newTable)
+	// Encode the updated table back to disk
+	return json.NewEncoder(f.database).Encode(table)
 }

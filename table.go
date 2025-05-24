@@ -25,3 +25,16 @@ func (table Table) Find(key string) *KVPair {
 	}
 	return nil
 }
+
+func (table *Table) Remove(key string) bool {
+	for i, p := range *table {
+		if p.Key == key {
+			// overwrite this slot with the last element
+			(*table)[i] = (*table)[len(*table)-1]
+			// shrink the slice by one
+			*table = (*table)[:len(*table)-1]
+			return true
+		}
+	}
+	return false
+}
