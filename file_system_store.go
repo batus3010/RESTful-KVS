@@ -8,7 +8,7 @@ import (
 )
 
 type FileSystemKVStore struct {
-	database io.Writer
+	database *json.Encoder
 	table    Table
 }
 
@@ -16,9 +16,8 @@ func NewFileSystemKVStore(file *os.File) *FileSystemKVStore {
 	file.Seek(0, io.SeekStart)
 	table, _ := NewTable(file)
 
-	writer := &rewindableWriter{file: file}
 	return &FileSystemKVStore{
-		database: writer,
+		database: json.NewEncoder(&rewindableWriter{file}),
 		table:    table,
 	}
 }
@@ -42,7 +41,11 @@ func (f *FileSystemKVStore) Put(key string, value string) error {
 	} else {
 		f.table = append(f.table, KVPair{key, value})
 	}
-	return json.NewEncoder(f.database).Encode(f.table)
+	err := f.database.Encode(f.table)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (f *FileSystemKVStore) Delete(key string) error {
@@ -50,5 +53,9 @@ func (f *FileSystemKVStore) Delete(key string) error {
 		return errors.New(ErrMsgKeyNotFound)
 	}
 	// one call to rewrite the file
-	return json.NewEncoder(f.database).Encode(f.table)
+	err := f.database.Encode(f.table)
+	if err != nil {
+		return err
+	}
+	return nil
 }
