@@ -14,23 +14,15 @@ type FileSystemKVStore struct {
 }
 
 func NewFileSystemKVStore(file *os.File) (*FileSystemKVStore, error) {
-	file.Seek(0, io.SeekStart)
-
-	info, err := file.Stat()
-
+	err := initialiseDBFile(file)
 	if err != nil {
-		return nil, fmt.Errorf("problem getting file info from file %s, %v", file.Name(), err)
-	}
-
-	if info.Size() == 0 {
-		file.Write([]byte("[]"))
-		file.Seek(0, io.SeekStart)
+		return nil, fmt.Errorf("problem initialising player db file, %v", err)
 	}
 
 	table, err := NewTable(file)
 
 	if err != nil {
-		return nil, fmt.Errorf("problem loading player store from file %s, %v", file.Name(), err)
+		return nil, fmt.Errorf("problem loading KV store from file %s, %v", file.Name(), err)
 	}
 
 	return &FileSystemKVStore{
@@ -74,5 +66,20 @@ func (f *FileSystemKVStore) Delete(key string) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func initialiseDBFile(file *os.File) error {
+	file.Seek(0, io.SeekStart)
+	info, err := file.Stat()
+
+	if err != nil {
+		return fmt.Errorf("problem getting file info from file %s, %v", file.Name(), err)
+	}
+	if info.Size() == 0 {
+		file.Write([]byte("[]"))
+		file.Seek(0, io.SeekStart)
+	}
+
 	return nil
 }
