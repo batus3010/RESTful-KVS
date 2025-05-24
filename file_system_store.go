@@ -28,6 +28,8 @@ func (f *FileSystemKVStore) Update(key string, value string) {
 	pair := table.Find(key)
 	if pair != nil {
 		pair.Value = value
+	} else {
+		table = append(table, KVPair{key, value})
 	}
 	f.database.Seek(0, io.SeekStart)
 	json.NewEncoder(f.database).Encode(table)
