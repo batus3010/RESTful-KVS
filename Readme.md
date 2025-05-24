@@ -1,6 +1,6 @@
 # Key-Value-Store
 
-A simple RESTful key-value store implemented in Go, containerized with Docker, backed by a file-system store, with a test suite for unit and integration tests. Future enhancements include clustering for fault tolerance, replication, and consensus via Raft.
+A simple RESTful key-value store implemented in Go, containerized with Docker, backed by a file-system store, built following TDD approach with a test suite for unit and integration tests. Future enhancements include clustering for fault tolerance, replication, and consensus via Raft.
 
 ---
 
