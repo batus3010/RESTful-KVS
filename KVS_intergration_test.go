@@ -59,14 +59,17 @@ func TestInMemoryKVSIntegration(t *testing.T) {
 
 // --- HTTP server integration ---
 
-// newTestServer gives you a Server with an empty InMemoryKVS and a silent logger.
-func newTestServer() *Server {
+// newTestServer gives you a Server with an empty file system store and a silent logger.
+func newTestServer(t testing.TB) *Server {
 	logger := log.New(io.Discard, "", 0)
-	return NewServer(NewInMemoryKVS(), logger)
+	database, cleanDatabase := createTempFileSystem(t, "")
+	t.Cleanup(cleanDatabase) // close database file after the tests
+	store := NewFileSystemKVStore(database)
+	return NewServer(store, logger)
 }
 
 func TestHTTPIntegration(t *testing.T) {
-	srv := newTestServer()
+	srv := newTestServer(t)
 
 	// 1) GET missing key → 404
 	{
@@ -120,11 +123,13 @@ func TestHTTPIntegration(t *testing.T) {
 
 func TestListAllKeys(t *testing.T) {
 	// seed store with two entries
-	store := NewInMemoryKVS()
+	database, cleanDatabase := createTempFileSystem(t, "")
+	defer cleanDatabase()
+	store := NewFileSystemKVStore(database)
 	store.Put("foo", "bar")
 	store.Put("baz", "qux")
 
-	srv := newTestServer()
+	srv := newTestServer(t)
 	// replace the store inside srv so it's pre-populated
 	srv.Store = store
 
