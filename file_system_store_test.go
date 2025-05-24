@@ -1,15 +1,18 @@
 package kvs
 
 import (
-	"strings"
+	"io"
+	"os"
 	"testing"
 )
 
 func TestFileSystemStore(t *testing.T) {
+
 	t.Run("KV table from a reader", func(t *testing.T) {
-		database := strings.NewReader(`[
+		database, cleanDatabase := createTempFileSystem(t, `[
 			{"Key": "key1", "Value": "value1"},
 			{"Key": "key2", "Value": "value2"}]`)
+		defer cleanDatabase()
 		store := FileSystemKVStore{database}
 
 		got := store.GetTable()
@@ -19,17 +22,34 @@ func TestFileSystemStore(t *testing.T) {
 		}
 		assertTable(t, got, want)
 
+		// read again to test for multiple reads
 		got = store.GetTable()
 		assertTable(t, got, want)
 	})
 
 	t.Run("get value from a reader", func(t *testing.T) {
-		database := strings.NewReader(`[
+		database, cleanDatabase := createTempFileSystem(t, `[
 			{"Key": "key1", "Value": "value1"},
 			{"Key": "key2", "Value": "value2"}]`)
+		defer cleanDatabase()
 		store := FileSystemKVStore{database}
 		got := store.GetValueOf("key1")
 		want := "value1"
 		assertEqual(t, got, want)
 	})
+}
+
+func createTempFileSystem(t testing.TB, initialData string) (io.ReadWriteSeeker, func()) {
+	t.Helper()
+	tmpfile, err := os.CreateTemp("", "db")
+	if err != nil {
+		t.Fatalf("could not create temp file %v", err)
+	}
+	tmpfile.Write([]byte(initialData))
+	removeFile := func() {
+		tmpfile.Close()
+		os.Remove(tmpfile.Name())
+	}
+
+	return tmpfile, removeFile
 }

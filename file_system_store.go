@@ -5,7 +5,7 @@ import (
 )
 
 type FileSystemKVStore struct {
-	database io.ReadSeeker
+	database io.ReadWriteSeeker
 }
 
 func (f *FileSystemKVStore) GetTable() []KVPair {
