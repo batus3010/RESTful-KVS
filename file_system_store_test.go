@@ -37,6 +37,19 @@ func TestFileSystemStore(t *testing.T) {
 		want := "value1"
 		assertEqual(t, got, want)
 	})
+
+	t.Run("update value for existing key", func(t *testing.T) {
+		database, cleanDatabase := createTempFileSystem(t, `[
+			{"Key": "key1", "Value": "old value"},
+			{"Key": "key2", "Value": "value2"}]`)
+		defer cleanDatabase()
+
+		store := FileSystemKVStore{database}
+		store.Update("key1", "new value")
+		got := store.GetValueOf("key1")
+		want := "new value"
+		assertEqual(t, got, want)
+	})
 }
 
 func createTempFileSystem(t testing.TB, initialData string) (io.ReadWriteSeeker, func()) {
